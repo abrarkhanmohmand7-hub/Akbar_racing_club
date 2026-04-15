@@ -78,3 +78,69 @@ if st.button("🔥 ANALYZE NOW", use_container_width=True):
     with res_c2:
         st.metric("BEST BET", f"#{winner_n}", f"{winner_p}%")
         if winner_p >= 80: st.balloons()
+import streamlit as st
+
+# Page ki setting (Browser tab ka naam aur layout)
+st.set_page_config(page_title="Akbar Khan Admin Panel", layout="wide")
+
+# Sidebar - Jahan se aap settings control kareinge
+st.sidebar.title("🛠 Admin Settings")
+user_name = st.sidebar.text_input("User Name", "Akbar Khan")
+user_balance = st.sidebar.number_input("Wallet Balance", value=1000)
+
+# Live Stream link dalnay ki jagah (YouTube ya kisi bhi site ka link)
+st.sidebar.markdown("---")
+st.sidebar.subheader("Live Stream Control")
+live_url = st.sidebar.text_input("Paste Live Link Here", "https://www.youtube.com/embed/live_stream_id")
+
+# --- Main Dashboard ---
+st.title("🏆 Live Games & Betting Dashboard")
+st.write(f"Welcome back, **{user_name}** | Balance: **${user_balance}**")
+
+# Screen ko 2 hisson mein taqseem karna (Video aur Data)
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.subheader("📺 Live Match / Race")
+    if "youtube.com" in live_url or "youtu.be" in live_url:
+        # Agar YouTube ka link hai
+        st.video(live_url)
+    else:
+        # Agar koi betting site ka embed link hai
+        st.components.v1.iframe(live_url, height=500, scrolling=True)
+
+with col2:
+    st.subheader("📊 Live Odds")
+    st.info("Market: Greyhound Racing (Nottingham)")
+    
+    # Fake Data (Isay aap manually edit kar saktay hain)
+    odds_list = [
+        {"Trap": 1, "Runner": "Fast Bullet", "Price": "2.50"},
+        {"Trap": 2, "Runner": "Golden Paws", "Price": "4.00"},
+        {"Trap": 3, "Runner": "Silver Streak", "Price": "1.85"},
+        {"Trap": 4, "Runner": "Night Owl", "Price": "6.00"}
+    ]
+    st.table(odds_list)
+
+    # Betting Section
+    st.subheader("💰 Place Your Bet")
+    pick = st.selectbox("Select Runner (Trap)", [1, 2, 3, 4])
+    amount = st.number_input("Enter Bet Amount", min_value=10, step=10)
+    
+    if st.button("Confirm Bet"):
+        if amount <= user_balance:
+            st.success(f"Bet of ${amount} placed on Trap {pick}!")
+        else:
+            st.error("Insufficient Balance!")
+
+# --- Bottom Section: Results ---
+st.divider()
+st.subheader("🕒 Recent Results & History")
+results_data = {
+    "Time": ["14:10", "14:20", "14:30"],
+    "Track": ["Kinsley", "Nottingham", "Towcester"],
+    "Winner": ["Trap 2", "Trap 5", "Trap 1"],
+    "Status": ["Closed", "Closed", "Closed"]
+}
+st.table(results_data)
+    
