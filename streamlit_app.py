@@ -1,66 +1,97 @@
 import streamlit as st
-from datetime import datetime
-import pytz # Pakistan time ke liye
+from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Easy Predictor", layout="centered")
+# Page configuration
+st.set_page_config(page_title="Akbar Khan - Racing Predictor", layout="centered")
 
-# --- LIVE PAKISTAN TIME ---
-pk_timezone = pytz.timezone('Asia/Karachi')
-current_time = datetime.now(pk_timezone).strftime("%I:%M:%S %p")
-st.markdown(f"### 🕒 Pakistan Time: `{current_time}`")
+# --- LIVE PAKISTAN TIME (Manual Calculation) ---
+pk_time = datetime.utcnow() + timedelta(hours=5)
+current_time = pk_time.strftime("%I:%M:%S %p")
 
-st.title("🏁 Quick Trap Analysis")
-st.sidebar.link_button("📅 Live Race Info", "https://www.racingpost.com/greyhounds/")
+# --- AKBAR KHAN HEADER (Wolf777 Style) ---
+st.markdown(f"""
+    <div style='text-align: center; padding: 20px; border-radius: 15px; background-color: #111827; border: 3px solid #fbbf24; margin-bottom: 20px;'>
+        <h1 style='color: #fbbf24; margin: 0; font-family: sans-serif; letter-spacing: 2px;'>👤 AKBAR KHAN</h1>
+        <p style='color: #ffffff; font-size: 18px; margin: 5px 0;'>🏆 Wolf777 Racing Expert Pro</p>
+        <div style='background-color: #fbbf24; color: #111827; padding: 5px; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 20px;'>
+            🕒 PK Time: {current_time}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Sidebar for Race Selection
-st.sidebar.subheader("Race Settings")
-race_time_input = st.sidebar.text_input("Race Scheduled Time", placeholder="e.g. 12:30 PM")
-distance = st.radio("Race Type", ["Sprints", "Standard", "Stayers"], horizontal=True)
+# --- SIDEBAR SETTINGS ---
+st.sidebar.header("🕹️ Control Panel")
+game_mode = st.sidebar.selectbox("Khel Chunein", ["Greyhound (Dogs)", "Horse Racing"])
+race_time = st.sidebar.text_input("Race ka Time", "12:00 PM")
 
-st.divider()
+# Default runners
+runners = 6
+if game_mode == "Horse Racing":
+    runners = st.sidebar.number_input("Kitne Ghoray hain?", min_value=2, max_value=20, value=8)
 
-# TABLE HEADERS
+st.sidebar.divider()
+st.sidebar.info("Wolf777 se live bhao (odds) dekh kar nichey fill karen.")
+
+# --- MAIN INTERFACE ---
+st.title(f"🏁 {game_mode} Prediction")
+st.write(f"Race Time: **{race_time}**")
+
+# Table Headers
 h1, h2, h3 = st.columns([1, 2, 2])
-h1.write("**Trap**")
-h2.write("**Live Odds**")
-h3.write("**Split Time**")
+h1.write("**No.**")
+h2.write("**Live Odds (Bhao)**")
+h3.write("**Form (1-6)**")
 
-traps_data = {}
+data_input = {}
 
-# ONLY 2 BOXES PER TRAP
-for i in range(1, 7):
+# Dynamic Input Rows
+for i in range(1, runners + 1):
     c1, c2, c3 = st.columns([1, 2, 2])
     c1.subheader(f"#{i}")
-    l_odds = c2.number_input(f"Bhao {i}", value=4.0, key=f"l{i}", label_visibility="collapsed")
-    s_time = c3.number_input(f"Time {i}", value=4.10, format="%.2f", key=f"s{i}", label_visibility="collapsed")
-    traps_data[i] = {'odds': l_odds, 'split': s_time}
+    odd_val = c2.number_input(f"Odds {i}", value=4.0, key=f"o_{i}", label_visibility="collapsed")
+    form_val = c3.number_input(f"Form {i}", value=3.0, min_value=1.0, max_value=6.0, key=f"f_{i}", label_visibility="collapsed")
+    data_input[i] = {'odds': odd_val, 'form': form_val}
 
 st.divider()
 
-if st.button("🔥 CHECK BEST TRAP", use_container_width=True):
-    limit = 3.45 if distance == "Sprints" else 4.35 if distance == "Stayers" else 4.10
+# --- CALCULATION ---
+if st.button("🔥 FIND WINNER", use_container_width=True):
     results = []
-
-    for t_num, data in traps_data.items():
-        score = 10 
-        if data['split'] <= limit: score += 7 
-        if data['odds'] < 3.0: score += 5
-        elif data['odds'] < 5.0: score += 3
+    for n, data in data_input.items():
+        # Score calculation
+        score = 15 # Base
+        score += (7 - data['form']) * 2 # Form weight
         
-        pct = min(round((score / 25) * 100, 1), 100.0)
-        results.append((t_num, pct))
+        # Odds weight (Wolf777 market sentiment)
+        if data['odds'] <= 2.5: score += 12
+        elif data['odds'] <= 4.0: score += 7
+        elif data['odds'] <= 6.0: score += 3
+        
+        chance = min(round((score / 37) * 100, 1), 100.0)
+        results.append((n, chance))
 
+    # Sort to get the top one
     results.sort(key=lambda x: x[1], reverse=True)
-    best_t, best_p = results[0]
+    winner_n, winner_p = results[0]
 
-    st.subheader(f"🏆 Result for {race_time_input}")
-    res_col1, res_col2 = st.columns(2)
-    
-    with res_col1:
-        for t, p in results:
-            if p >= 70: st.success(f"Trap {t}: {p}%")
-            else: st.write(f"Trap {t}: {p}%")
+    # --- DISPLAY RESULTS ---
+    st.subheader("📊 Analysis Results")
+    col_left, col_right = st.columns(2)
 
-    with res_col2:
-        st.metric("WINNER", f"Trap {best_t}", f"{best_p}%")
-        if best_p >= 70: st.balloons()
+    with col_left:
+        for n, p in results[:6]: # Top 6 show honge
+            if p >= 75:
+                st.success(f"Number {n}: {p}% (Strong)")
+            elif p >= 50:
+                st.warning(f"Number {n}: {p}% (Medium)")
+            else:
+                st.write(f"Number {n}: {p}% (Low)")
+
+    with col_right:
+        st.metric(label="🏆 TOP RECOMMENDATION", value=f"Number {winner_n}", delta=f"{winner_p}% Chance")
+        if winner_p >= 75:
+            st.balloons()
+            st.markdown("🎯 **Safe Bet!** Form aur market bhao dono aapke haq mein hain.")
+
+st.divider()
+st.caption("Yeh software sirf mashwara deta hai. Aakhri faisla soch samajh kar karen.")
