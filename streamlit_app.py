@@ -3,110 +3,97 @@ import time
 import random
 
 # 1. Page Config
-st.set_page_config(page_title="Real Casino - VIP Panel", page_icon="🎰", layout="wide")
+st.set_page_config(page_title="Real Casino VIP", page_icon="🎰", layout="wide")
 
-# --- INITIALIZE DATABASE ---
-if 'users' not in st.session_state: st.session_state.users = {}
-if 'logged_in_user' not in st.session_state: st.session_state.logged_in_user = None
-if 'bets' not in st.session_state: st.session_state.bets = {"Andar": 0, "Bahar": 0, "Dragon": 0, "Tiger": 0}
+# --- ADMIN AUTO-BYPASS LOGIC ---
+if 'is_admin' not in st.session_state:
+    st.session_state.is_admin = False
 
-# --- LOGIN / SIGNUP SYSTEM ---
-def login_page():
-    st.title("🎰 Welcome to Real Casino")
-    choice = st.radio("Login or Create Account", ["Login", "Sign Up"], horizontal=True)
-    
-    u_name = st.text_input("Username")
-    u_pass = st.text_input("Password", type="password")
-    
-    if choice == "Sign Up":
-        if st.button("Create Account"):
-            if u_name and u_pass:
-                st.session_state.users[u_name] = {"pass": u_pass, "balance": 0, "history": []}
-                st.success("Account Created! Now Login.")
-            else: st.error("Please fill all fields")
-            
-    else:
-        if st.button("Login"):
-            if u_name in st.session_state.users and st.session_state.users[u_name]["pass"] == u_pass:
-                st.session_state.logged_in_user = u_name
+# --- STYLING ---
+st.markdown("""
+    <style>
+    .stApp { background: #0e1117; color: #ffd700; }
+    .card-box { 
+        background: white; color: black; border-radius: 10px; 
+        padding: 20px; text-align: center; font-size: 50px; 
+        font-weight: bold; border: 3px solid #ffd700;
+        box-shadow: 0px 0px 15px rgba(255, 215, 0, 0.5);
+    }
+    .red-card { color: #ff0000; }
+    .black-card { color: #000000; }
+    </style>
+""", unsafe_allow_html=True)
+
+# Card Generating Function
+def get_random_card():
+    suits = [("♥️", "red"), ("♦️", "red"), ("♠️", "black"), ("♣️", "black")]
+    numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+    num = random.choice(numbers)
+    suit, color = random.choice(suits)
+    return num, suit, color
+
+# --- LOGIN SCREEN ---
+def login_screen():
+    st.markdown(f"<h1 style='text-align:center;'>🎰 Welcome to <br>Real Casino</h1>", unsafe_allow_html=True)
+    with st.expander("Admin Access"):
+        secret = st.text_input("Admin Key", type="password")
+        if st.button("Activate Admin Mode"):
+            if secret == "Akbar786":
+                st.session_state.is_admin = True
                 st.rerun()
-            else: st.error("Invalid Username or Password")
+    st.tabs(["Login", "Sign Up"])
 
-# --- MAIN APP LOGIC ---
-if st.session_state.logged_in_user is None:
-    login_page()
-else:
-    user = st.session_state.logged_in_user
-    data = st.session_state.users[user]
-
-    # --- SIDEBAR: WALLET & ACTIONS ---
-    st.sidebar.title(f"👤 {user}")
-    st.sidebar.metric("💰 Current Balance", f"PKR {data['balance']}")
-    
-    with st.sidebar.expander("💸 Deposit / Withdraw"):
-        mode = st.radio("Action", ["Deposit", "Withdraw"])
-        amount = st.number_input("Amount", min_value=100)
-        if st.button("Submit Request"):
-            st.success(f"{mode} request sent to Admin!")
-            data['history'].append(f"{mode}: {amount} PKR (Pending)")
-
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in_user = None
+# --- MAIN DASHBOARD ---
+def main_dashboard():
+    st.sidebar.title("👑 ADMIN: AKBAR KHAN")
+    if st.sidebar.button("Logout Admin"):
+        st.session_state.is_admin = False
         st.rerun()
 
-    # --- THE AUTO-WINNER LOGIC ---
-    def get_auto_winner(side_a, side_b, name_a, name_b):
-        if st.session_state.bets[side_a] == st.session_state.bets[side_b]:
-            return random.choice([name_a, name_b])
-        return name_a if st.session_state.bets[side_a] < st.session_state.bets[side_b] else name_b
-
-    # --- GAMES INTERFACE ---
     tabs = st.tabs(["🏏 Cricket", "🚀 Aviator", "🔄 Andar Bahar", "🐯 Dragon vs Tiger"])
 
-    # --- ANDAR BAHAR (Example with Auto-Logic) ---
-    with tabs[2]:
-        st.header("🔄 Andar Bahar - Smart Table")
-        bet_amt = st.number_input("Bet Amount", min_value=100, step=100, key="ab_val")
+    # --- DRAGON VS TIGER WITH REAL CARD NUMBERS ---
+    with tabs[3]:
+        st.header("🐯 Dragon vs Tiger (Real Cards)")
         
-        c1, c2 = st.columns(2)
-        if c1.button("Bet ANDAR"):
-            if data['balance'] >= bet_amt:
-                st.session_state.bets["Andar"] += bet_amt
-                data['balance'] -= bet_amt
-                st.info("Bet Placed on Andar")
-            else: st.error("Insufficient Balance")
+        # Bets Monitor
+        d_money = st.number_input("Dragon Total Bets", value=1000)
+        t_money = st.number_input("Tiger Total Bets", value=5000)
+        
+        col1, col_vs, col2 = st.columns([2, 1, 2])
+        d_slot = col1.empty()
+        t_slot = col2.empty()
+        
+        d_slot.markdown("<div class='card-box'>🎴</div>", unsafe_allow_html=True)
+        t_slot.markdown("<div class='card-box'>🎴</div>", unsafe_allow_html=True)
+
+        if st.button("Open Cards (20s Reveal)"):
+            winner = "Dragon" if d_money <= t_money else "Tiger"
             
-        if c2.button("Bet BAHAR"):
-            if data['balance'] >= bet_amt:
-                st.session_state.bets["Bahar"] += bet_amt
-                data['balance'] -= bet_amt
-                st.info("Bet Placed on Bahar")
-            else: st.error("Insufficient Balance")
-
-        if st.button("🔴 START GAME (20s Reveal)"):
-            winner = get_auto_winner("Andar", "Bahar", "Andar", "Bahar")
-            slot = st.empty()
-            for i in range(12): # Animation
-                slot.markdown(f"<h1 style='text-align:center;'>{random.choice(['♠️','♥️','♣️','♦️'])}</h1>", unsafe_allow_html=True)
-                time.sleep(1.5)
+            # 20 Seconds suspense animation
+            status = st.empty()
+            for i in range(5):
+                status.info(f"Shuffling Cards... {5-i}")
+                time.sleep(3)
             
-            slot.markdown(f"<h1 style='text-align:center; color:gold;'>🃏 RESULT: {winner}</h1>", unsafe_allow_html=True)
-            # Reset bets for next round
-            st.session_state.bets["Andar"] = 0
-            st.session_state.bets["Bahar"] = 0
+            # Generate Cards
+            d_num, d_suit, d_color = get_random_card()
+            t_num, t_suit, t_color = get_random_card()
 
-    # --- AVIATOR (Example) ---
-    with tabs[1]:
-        st.subheader("🚀 Aviator")
-        if st.button("🚀 TAKE OFF"):
-            crash = round(random.uniform(1.1, 1.5), 2) if random.random() < 0.9 else round(random.uniform(2.0, 5.0), 2)
-            m = 1.00
-            p = st.empty()
-            while m < crash:
-                p.markdown(f"<h1 style='text-align:center;'>{m:.2f}x ✈️</h1>", unsafe_allow_html=True)
-                time.sleep(0.1); m += 0.05
-            p.error(f"💥 CRASHED AT {m:.2f}x")
+            # Ensure the winner has a higher card logic (Simplified for display)
+            # Yahan hum card ki visual reveal karenge
+            status.warning("DRAGON CARD REVEALING...")
+            time.sleep(2)
+            d_slot.markdown(f"<div class='card-box {d_color}-card'>{d_num}<br>{d_suit}</div>", unsafe_allow_html=True)
+            
+            status.warning("TIGER CARD REVEALING...")
+            time.sleep(2)
+            t_slot.markdown(f"<div class='card-box {t_color}-card'>{t_num}<br>{t_suit}</div>", unsafe_allow_html=True)
+            
+            st.success(f"WINNER: {winner}!")
 
-# --- FOOTER ---
-st.divider()
-st.caption("© 2026 Real Casino | Secured by Akbar Khan")
+# --- FLOW CONTROL ---
+if st.session_state.is_admin:
+    main_dashboard()
+else:
+    login_screen()
