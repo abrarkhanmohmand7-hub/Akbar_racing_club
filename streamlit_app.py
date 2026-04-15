@@ -3,104 +3,81 @@ import time
 import random
 
 # 1. Page Config
-st.set_page_config(page_title="VIP Live Exchange", page_icon="🏏", layout="wide")
+st.set_page_config(page_title="VIP LIVE EXCHANGE", page_icon="🏏", layout="wide")
 
-# --- LIVE AUTO-REFRESH ENGINE ---
-# Ye line har 5 second baad page ko khud refresh karegi taake rates badalte rahen
-if "counter" not in st.session_state:
-    st.session_state.counter = 0
-
-# Har 5 second baad auto-refresh (Live feel ke liye)
-st.empty() 
-
+# --- SESSION STATE ---
 if 'is_admin' not in st.session_state: st.session_state.is_admin = False
-if 'balance' not in st.session_state: st.session_state.balance = 5000
 
-# --- PREMIUM CSS ---
+# --- PREMIUM CSS (Real Cards & Exchange UI) ---
 st.markdown("""
     <style>
     .stApp { background: #0e1117; color: #ffd700; }
-    .rate-card { background: #1e2130; padding: 12px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px; }
-    .back-btn { background-color: #72bbef; color: black; font-weight: bold; border-radius: 4px; padding: 10px; text-align: center; border: 1px solid white; box-shadow: 0px 2px 5px rgba(0,0,0,0.5); }
-    .lay-btn { background-color: #faa9ba; color: black; font-weight: bold; border-radius: 4px; padding: 10px; text-align: center; border: 1px solid white; box-shadow: 0px 2px 5px rgba(0,0,0,0.5); }
-    .rate-val { font-size: 20px; display: block; line-height: 1; }
-    .rate-label { font-size: 10px; display: block; font-weight: normal; }
-    .card-container { background: white; color: black; width: 100px; height: 150px; border-radius: 10px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; border: 3px solid #ffd700; margin: 5px; }
-    .footer { text-align: center; color: #ffd700; font-size: 20px; font-weight: bold; margin-top: 50px; border-top: 2px solid #ffd700; padding-top: 20px; }
+    .card-box {
+        background: white; color: black; width: 90px; height: 130px;
+        border-radius: 8px; display: inline-flex; flex-direction: column;
+        justify-content: center; align-items: center; border: 2px solid #ffd700;
+        box-shadow: 0px 0px 10px #ffd700; margin: 5px;
+    }
+    .card-num { font-size: 35px; font-weight: bold; line-height: 1; }
+    .card-suit { font-size: 30px; }
+    .red { color: #ff0000 !important; }
+    .black { color: #000000 !important; }
+    .back-btn { background-color: #72bbef; color: black; font-weight: bold; padding: 10px; text-align: center; border-radius: 4px; border: 1px solid white; }
+    .lay-btn { background-color: #faa9ba; color: black; font-weight: bold; padding: 10px; text-align: center; border-radius: 4px; border: 1px solid white; }
+    .fancy-row { background: #1e2130; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
+    .footer { text-align: center; color: #ffd700; font-size: 22px; font-weight: bold; margin-top: 40px; border-top: 2px solid #ffd700; padding-top: 20px; }
     </style>
 """, unsafe_allow_html=True)
 
-# Helper Functions
-def get_live_rate(base):
-    # Thori si random tabdeeli taake rate live lagay
-    change = random.uniform(-0.03, 0.03)
-    return round(base + change, 2)
+# Helper: Card Generator
+def get_card():
+    nums = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"]
+    suits = [("♥️", "red"), ("♦️", "red"), ("♠️", "black"), ("♣️", "black")]
+    n, (s, c) = random.choice(nums), random.choice(suits)
+    return n, s, c
 
 def draw_card(n, s, c):
-    st.markdown(f'<div class="card-container"><div style="font-size:35px; font-weight:bold;">{n}</div><div style="font-size:30px;" class="{c}">{s}</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="card-box"><div class="card-num {c}">{n}</div><div class="card-suit {c}">{s}</div></div>', unsafe_allow_html=True)
 
-# --- ACCESS CONTROL ---
+# --- LOGIN ---
 if not st.session_state.is_admin:
     st.markdown("<h1 style='text-align:center;'>🎰 VIP LIVE EXCHANGE</h1>", unsafe_allow_html=True)
     st.divider()
     key = st.text_input("Enter Secret Key", type="password")
-    if st.button("Unlock Live Markets"):
-        if key == "Akbar786": st.session_state.is_admin = True; st.rerun()
+    if st.button("Unlock Dashboard"):
+        if key == "Akbar786":
+            st.session_state.is_admin = True
+            st.rerun()
 else:
     # --- ADMIN DASHBOARD ---
-    st.sidebar.title("👑 VIP ACCESS")
-    st.sidebar.write(f"💰 Balance: PKR {st.session_state.balance}")
-    if st.sidebar.button("Logout"): st.session_state.is_admin = False; st.rerun()
+    st.sidebar.title("👑 VIP Panel")
+    if st.sidebar.button("Logout"):
+        st.session_state.is_admin = False
+        st.rerun()
 
-    tabs = st.tabs(["🏏 Cricket Live", "🚀 Aviator", "🔄 Casino Games", "💳 Wallet"])
+    tabs = st.tabs(["🏏 Cricket Live", "🚀 Aviator", "🔄 Casino Games", "🎨 Color Game", "💳 Wallet"])
 
-    # 1. CRICKET (With Auto-Changing Rates)
+    # 1. CRICKET LIVE (Real-Time 6-20 Over Fancy Only)
     with tabs[0]:
-        st.header("🏏 Live Markets (Auto-Update)")
-        match_tabs = st.tabs(["🏆 PSL 2026", "🇮🇳 IPL"])
+        st.header("🏏 Live Cricket Exchange")
+        l_tabs = st.tabs(["🇵🇰 PSL 2026", "🇮🇳 IPL", "🌍 World Cup"])
         
-        with match_tabs[0]:
-            # Live Match Data
-            matches = [("Peshawar Zalmi", 1.85), ("Lahore Qalandars", 1.87)]
-            for team, base_rate in matches:
-                live_rate = get_live_rate(base_rate)
-                st.markdown(f"<div class='rate-card'><b>{team}</b>", unsafe_allow_html=True)
-                c1, c2, c3 = st.columns([3, 1, 1])
-                c1.write("Match Winner (In-Play)")
+        with l_tabs[0]:
+            matches = [("Peshawar Zalmi", "Lahore Qalandars", 1.82), ("Karachi Kings", "Quetta Gladiators", 2.10)]
+            for t1, t2, base_r in matches:
+                st.markdown(f"### {t1} vs {t2} (LIVE)")
+                # Live Rate Logic
+                live_r = round(base_r + random.uniform(-0.04, 0.04), 2)
                 
-                # Live Buttons with Rates
-                c2.markdown(f"<div class='back-btn'><span class='rate-val'>{live_rate}</span><span class='rate-label'>BACK</span></div>", unsafe_allow_html=True)
-                c3.markdown(f"<div class='lay-btn'><span class='rate-val'>{round(live_rate + 0.02, 2)}</span><span class='rate-label'>LAY</span></div>", unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
-
-            # Fancy 6-50 Over
-            with st.expander("📊 All Fancy Markets"):
-                for over in ["6 Over", "10 Over", "20 Over", "50 Over"]:
-                    fc1, fc2, fc3 = st.columns([2, 1, 1])
-                    fc1.write(f"**{over} Session**")
-                    val = random.randint(48, 290)
-                    fc2.button(f"{val}\nNO", key=over+"n")
-                    fc3.button(f"{val+2}\nYES", key=over+"y")
-
-    # 2. CASINO (With Real Cards)
-    with tabs[2]:
-        st.header("🔄 Live Casino")
-        if st.button("Deal Dragon vs Tiger"):
-            with st.spinner("Dealing..."):
-                time.sleep(3)
-                c_a, c_b = st.columns(2)
-                # Random cards
-                with c_a: st.write("Dragon:"); draw_card("K", "♠️", "black")
-                with c_b: st.write("Tiger:"); draw_card("7", "♥️", "red")
-
-# --- FOOTER ---
-st.markdown("""
-    <div class="footer">
-        👑 Admin by Akbar khan 👑<br>
-        <span style="font-size: 14px; opacity: 0.8;">Live Market Engine Active • © 2026</span>
-    </div>
-""", unsafe_allow_html=True)
-
-# Auto-Refresh Script (Last Line)
-time.sleep(5)
-st.rerun()
+                c1, c2, c3 = st.columns([3, 1, 1])
+                c1.write("**Match Winner**")
+                c2.markdown(f"<div class='back-btn'>{live_r}<br>BACK</div>", unsafe_allow_html=True)
+                c3.markdown(f"<div class='lay-btn'>{round(live_r+0.02, 2)}<br>LAY</div>", unsafe_allow_html=True)
+                
+                with st.expander(f"📊 Live Fancy (Max 20 Over)"):
+                    # Sirf 20 over tak ki fancy
+                    f_data = [("6 Over Session", 48), ("10 Over Session", 82), ("15 Over Session", 125), ("20 Over Session", 178)]
+                    for f_name, f_val in f_data:
+                        v = f_val + random.randint(-2, 2)
+                        fc1, fc2, fc3 = st.columns([2, 1, 1])
+                        fc1.markdown(f"<div class='fancy
