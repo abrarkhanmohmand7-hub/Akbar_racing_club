@@ -2,62 +2,70 @@ import streamlit as st
 import time
 import random
 
-# 1. Page Config (Mobile Friendly)
-st.set_page_config(page_title="Y999 Exchange", page_icon="🟢", layout="wide")
+# 1. Page Config (Mobile Optimized)
+st.set_page_config(page_title="Y999 VIP", page_icon="🟢", layout="wide")
 
-# --- CUSTOM CSS (Neon Green & Black Theme) ---
+# --- CUSTOM CSS (Professional Box Interface) ---
 st.markdown("""
     <style>
-    /* Main Background */
     .stApp { background: #0b0e11; color: #ffffff; }
     
-    /* Top Header Bar */
-    .top-bar {
+    /* Top Bar */
+    .header-bar {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 10px; background: #1a1d23; border-bottom: 2px solid #39ff14;
-        position: sticky; top: 0; z-index: 100;
+        padding: 10px 15px; background: #1a1d23; border-bottom: 2px solid #39ff14;
+        position: sticky; top: 0; z-index: 999;
     }
-    .balance-box { background: #2c313c; padding: 5px 15px; border-radius: 20px; color: #ffd700; font-weight: bold; }
-    .deposit-btn { background: #39ff14; color: black; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
+    .balance-box { background: #2c313c; padding: 5px 12px; border-radius: 20px; color: #ffd700; font-weight: bold; border: 1px solid #444; font-size: 14px; }
+    .deposit-btn { background: #39ff14; color: black; padding: 5px 15px; border-radius: 6px; font-weight: bold; font-size: 14px; }
 
-    /* Game Cards Styling */
-    .game-card {
-        background: #1a1d23; border-radius: 12px; border: 1px solid #333;
-        padding: 5px; text-align: center; transition: 0.3s; margin-bottom: 15px;
+    /* Game Category Styling */
+    .cat-header { color: #39ff14; font-size: 18px; font-weight: bold; margin: 20px 0 10px 10px; display: flex; align-items: center; gap: 8px; }
+    
+    /* Individual Game Box */
+    .game-container {
+        background: #1a1d23; border-radius: 15px; border: 1px solid #333;
+        overflow: hidden; text-align: center; transition: 0.3s;
+        margin-bottom: 15px; position: relative;
     }
-    .game-card:hover { border-color: #39ff14; box-shadow: 0px 0px 10px #39ff14; }
-    .game-img { width: 100%; border-radius: 8px; margin-bottom: 5px; }
-    .game-title { font-size: 12px; font-weight: bold; color: #ddd; }
-
-    /* Category Headers */
-    .cat-header {
-        display: flex; align-items: center; gap: 10px;
-        font-size: 18px; font-weight: bold; margin: 20px 0 10px 0; color: #39ff14;
+    .game-container:hover { border-color: #39ff14; box-shadow: 0px 0px 15px #39ff14; }
+    .game-img-placeholder {
+        width: 100%; height: 110px; background: linear-gradient(45deg, #1a1d23, #2c313c);
+        display: flex; justify-content: center; align-items: center; font-size: 40px;
+    }
+    .game-label {
+        background: rgba(0,0,0,0.7); color: #fff; padding: 5px;
+        font-size: 12px; font-weight: bold; border-top: 1px solid #444;
     }
 
-    /* Bottom Navigation */
-    .nav-bar {
+    /* Bottom Nav */
+    .bottom-nav {
         position: fixed; bottom: 0; left: 0; width: 100%;
         background: #1a1d23; display: flex; justify-content: space-around;
-        padding: 10px; border-top: 1px solid #333; z-index: 1000;
+        padding: 12px 0; border-top: 1px solid #333; z-index: 999;
     }
-    .nav-item { text-align: center; color: #888; font-size: 12px; }
-    .nav-item.active { color: #39ff14; }
+    .nav-icon { text-align: center; color: #888; font-size: 12px; }
+    .nav-icon.active { color: #39ff14; }
 
-    /* Card Graphics */
+    /* Real Cards Styling */
     .playing-card {
-        background: white; color: black; width: 80px; height: 110px;
-        border-radius: 8px; display: inline-flex; flex-direction: column;
-        justify-content: center; align-items: center; border: 2px solid #ffd700;
-        font-weight: bold; font-size: 25px; margin: 5px;
+        background: white; color: black; width: 80px; height: 115px;
+        border-radius: 10px; display: inline-flex; flex-direction: column;
+        justify-content: center; align-items: center; border: 3px solid #ffd700;
+        box-shadow: 0px 5px 10px rgba(0,0,0,0.5); margin: 5px;
     }
+    .card-val { font-size: 35px; font-weight: bold; line-height: 1; }
+    .card-sym { font-size: 30px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- APP HEADER ---
-st.markdown("""
-    <div class="top-bar">
-        <div style="font-size: 24px; font-weight: bold; color: #39ff14;">Y999</div>
+# --- SESSION STATE ---
+if 'page' not in st.session_state: st.session_state.page = "Home"
+
+# --- HEADER ---
+st.markdown(f"""
+    <div class="header-bar">
+        <div style="font-size: 22px; font-weight: bold; color: #39ff14;">Y999</div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <div class="balance-box">Rs 0.00 🔄</div>
             <div class="deposit-btn">Deposit</div>
@@ -65,78 +73,89 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- NAVIGATION LOGIC ---
-if 'page' not in st.session_state: st.session_state.page = 'Home'
+# --- HELPER: Game Box UI ---
+def game_box(name, icon, key):
+    with st.container():
+        st.markdown(f"""
+            <div class="game-container">
+                <div class="game-img-placeholder">{icon}</div>
+                <div class="game-label">{name}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Play Now", key=key, use_container_width=True):
+            if name == "9Wickets": st.session_state.page = "Cricket"
+            elif name in ["JILI Cards", "Tiger"]: st.session_state.page = "Casino"
+            st.rerun()
 
-# --- CONTENT ---
-if st.session_state.page == 'Home':
+# --- PAGES ---
+
+if st.session_state.page == "Home":
     # 1. LIVE SECTION
-    st.markdown('<div class="cat-header">👤 Live</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-vector/casino-glitter-banner_1017-14361.jpg" class="game-img"><div class="game-title">EVO Live</div></div>', unsafe_allow_html=True)
-    with c2: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-photo/beauty-portrait-woman-with-clean-fresh-skin_1150-13781.jpg" class="game-img"><div class="game-title">SEXY Live</div></div>', unsafe_allow_html=True)
-    with c3: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-photo/gorgeous-woman-celebrating-with-confetti_23-2148416301.jpg" class="game-img"><div class="game-title">PP Live</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="cat-header">👤 Live Casino</div>', unsafe_allow_html=True)
+    l1, l2, l3 = st.columns(3)
+    with l1: game_box("EVO Live", "🎬", "evo")
+    with l2: game_box("SEXY Live", "💃", "sexy")
+    with l3: game_box("PP Live", "🃏", "pp")
 
-    # 2. SPORTS SECTION (All Leagues)
+    # 2. SPORTS SECTION
     st.markdown('<div class="cat-header">⚽ Sports</div>', unsafe_allow_html=True)
     s1, s2, s3 = st.columns(3)
-    with s1:
-        if st.button("9Wickets"): st.session_state.page = 'Cricket'
-        st.markdown('<div class="game-card"><div class="game-title">9Wickets Sports</div></div>', unsafe_allow_html=True)
-    with s2: st.markdown('<div class="game-card"><div class="game-title">SABA Sports</div></div>', unsafe_allow_html=True)
-    with s3: st.markdown('<div class="game-card"><div class="game-title">WG Sports</div></div>', unsafe_allow_html=True)
+    with s1: game_box("9Wickets", "🏏", "9w")
+    with s2: game_box("SABA Sports", "⚽", "saba")
+    with s3: game_box("WG Sports", "🎾", "wg")
 
     # 3. CARDS & SLOTS
     st.markdown('<div class="cat-header">🃏 Cards & Slots</div>', unsafe_allow_html=True)
-    cl1, cl2, cl3 = st.columns(3)
-    with cl1: 
-        if st.button("Teen Patti"): st.session_state.page = 'Casino'
-        st.markdown('<div class="game-title">JILI Cards</div>', unsafe_allow_html=True)
-    with cl2: st.markdown('<div class="game-title">Aviator</div>', unsafe_allow_html=True)
-    with cl3: st.markdown('<div class="game-title">Dragon Tiger</div>', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: game_box("JILI Cards", "🎴", "jili")
+    with c2: game_box("Aviator", "🚀", "avi")
+    with c3: game_box("Tiger", "🐯", "tiger")
 
-elif st.session_state.page == 'Cricket':
-    st.header("🏏 Live Cricket Exchange")
-    st.info("Market: PSL 2026 - Peshawar vs Lahore")
-    rate = round(random.uniform(1.80, 1.90), 2)
-    col1, col2, col3 = st.columns([2,1,1])
-    col1.write("### Match Odds")
-    col2.button(f"{rate}\nBACK")
-    col3.button(f"{rate+0.02}\nLAY")
+elif st.session_state.page == "Cricket":
+    st.header("🏏 9Wickets Live")
+    st.markdown("### Peshawar vs Lahore (In-Play)")
+    rate = round(random.uniform(1.82, 1.88), 2)
     
-    st.subheader("📊 Fancy (6-20 Over)")
+    col_a, col_b = st.columns(2)
+    col_a.info(f"BACK: {rate}")
+    col_b.error(f"LAY: {round(rate+0.02, 2)}")
+    
+    st.subheader("📊 Live Fancy (6-20 Over Only)")
     for f in ["6 Over", "10 Over", "20 Over"]:
-        r1, r2, r3 = st.columns([2,1,1])
-        r1.write(f)
-        r2.button("NO", key=f+"n")
-        r3.button("YES", key=f+"y")
-    if st.button("Back to Home"): st.session_state.page = 'Home'; st.rerun()
-
-elif st.session_state.page == 'Casino':
-    st.header("🃏 Live Casino Round")
-    if st.button("Deal Real Cards"):
-        c1, c2, c3 = st.columns(3)
-        nums = ["A", "K", "Q", "J", "10"]
-        suits = [("♥️","red"), ("♠️","black")]
-        for c in [c1, c2, c3]:
-            n = random.choice(nums)
-            s, color = random.choice(suits)
-            with c: st.markdown(f'<div class="playing-card" style="color:{color}">{n}<br>{s}</div>', unsafe_allow_html=True)
+        st.write(f"**{f} Session**")
+        v = random.randint(45, 170)
+        c1, c2 = st.columns(2)
+        c1.button(f"{v}\nNO", key=f+"n")
+        c2.button(f"{v+2}\nYES", key=f+"y")
     
-    # Logic: Jis side pe kam paise lagein wo win karey
-    st.warning("Admin Logic: Side with MINIMUM bets will win automatically.")
-    if st.button("Back to Home"): st.session_state.page = 'Home'; st.rerun()
+    if st.button("← Back"): st.session_state.page = "Home"; st.rerun()
 
-# --- BOTTOM NAVIGATION ---
+elif st.session_state.page == "Casino":
+    st.header("🃏 Live Table")
+    st.warning("Admin Logic: Minimum Bet side will win automatically.")
+    
+    if st.button("Deal Real Cards"):
+        time.sleep(1)
+        res_cols = st.columns(3)
+        cards = [("A","♥️","red"), ("K","♠️","black"), ("10","♦️","red"), ("Q","♣️","black"), ("J","♠️","black")]
+        for i in range(3):
+            val, sym, col = random.choice(cards)
+            with res_cols[i]:
+                st.markdown(f'<div class="playing-card" style="color:{col}"><div class="card-val">{val}</div><div class="card-sym">{sym}</div></div>', unsafe_allow_html=True)
+        st.success("Result Generated!")
+
+    if st.button("← Back"): st.session_state.page = "Home"; st.rerun()
+
+# --- BOTTOM NAV ---
 st.markdown("""
-    <div class="nav-bar">
-        <div class="nav-item active">🏠<br>Home</div>
-        <div class="nav-item">🎁<br>Offers</div>
-        <div class="nav-item">👥<br>Invite</div>
-        <div class="nav-item">🎧<br>Support</div>
-        <div class="nav-item">👤<br>Profile</div>
+    <div class="bottom-nav">
+        <div class="nav-icon active">🏠<br>Home</div>
+        <div class="nav-icon">🎁<br>Offers</div>
+        <div class="nav-icon">👥<br>Invite</div>
+        <div class="nav-icon">🎧<br>Support</div>
+        <div class="nav-icon">👤<br>Profile</div>
     </div>
 """, unsafe_allow_html=True)
 
-# Footer Branding
-st.markdown(f"<div style='text-align:center; padding: 50px; color: #39ff14;'>👑 Admin by Akbar khan 👑<br>Verified Exchange © 2026</div>", unsafe_allow_html=True)
+# Footer
+st.markdown("<br><br><br><div style='text-align:center; color:#39ff14; font-weight:bold;'>👑 Admin by Akbar khan 👑<br>© 2026 Verified System</div>", unsafe_allow_html=True)
