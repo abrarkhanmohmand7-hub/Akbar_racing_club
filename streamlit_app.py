@@ -2,131 +2,141 @@ import streamlit as st
 import time
 import random
 
-# 1. Page Config
-st.set_page_config(page_title="VIP LIVE EXCHANGE", page_icon="🏏", layout="wide")
+# 1. Page Config (Mobile Friendly)
+st.set_page_config(page_title="Y999 Exchange", page_icon="🟢", layout="wide")
 
-if 'is_admin' not in st.session_state: st.session_state.is_admin = False
-
-# --- PREMIUM STYLING ---
+# --- CUSTOM CSS (Neon Green & Black Theme) ---
 st.markdown("""
     <style>
-    .stApp { background: #0e1117; color: #ffd700; }
-    .card-box {
-        background: white; color: black; width: 95px; height: 135px;
-        border-radius: 10px; display: inline-flex; flex-direction: column;
-        justify-content: center; align-items: center; border: 3px solid #ffd700;
-        box-shadow: 0px 0px 12px #ffd700; margin: 10px;
+    /* Main Background */
+    .stApp { background: #0b0e11; color: #ffffff; }
+    
+    /* Top Header Bar */
+    .top-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px; background: #1a1d23; border-bottom: 2px solid #39ff14;
+        position: sticky; top: 0; z-index: 100;
     }
-    .card-num { font-size: 38px; font-weight: bold; line-height: 1; color: black; }
-    .card-suit { font-size: 32px; }
-    .red { color: #ff0000 !important; }
-    .black { color: #000000 !important; }
-    .back-btn { background-color: #72bbef; color: black !important; font-weight: bold; padding: 12px; text-align: center; border-radius: 6px; border: 1px solid white; }
-    .lay-btn { background-color: #faa9ba; color: black !important; font-weight: bold; padding: 12px; text-align: center; border-radius: 6px; border: 1px solid white; }
-    .footer { text-align: center; color: #ffd700; font-size: 24px; font-weight: bold; margin-top: 50px; border-top: 3px solid #ffd700; padding-top: 20px; }
+    .balance-box { background: #2c313c; padding: 5px 15px; border-radius: 20px; color: #ffd700; font-weight: bold; }
+    .deposit-btn { background: #39ff14; color: black; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
+
+    /* Game Cards Styling */
+    .game-card {
+        background: #1a1d23; border-radius: 12px; border: 1px solid #333;
+        padding: 5px; text-align: center; transition: 0.3s; margin-bottom: 15px;
+    }
+    .game-card:hover { border-color: #39ff14; box-shadow: 0px 0px 10px #39ff14; }
+    .game-img { width: 100%; border-radius: 8px; margin-bottom: 5px; }
+    .game-title { font-size: 12px; font-weight: bold; color: #ddd; }
+
+    /* Category Headers */
+    .cat-header {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 18px; font-weight: bold; margin: 20px 0 10px 0; color: #39ff14;
+    }
+
+    /* Bottom Navigation */
+    .nav-bar {
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: #1a1d23; display: flex; justify-content: space-around;
+        padding: 10px; border-top: 1px solid #333; z-index: 1000;
+    }
+    .nav-item { text-align: center; color: #888; font-size: 12px; }
+    .nav-item.active { color: #39ff14; }
+
+    /* Card Graphics */
+    .playing-card {
+        background: white; color: black; width: 80px; height: 110px;
+        border-radius: 8px; display: inline-flex; flex-direction: column;
+        justify-content: center; align-items: center; border: 2px solid #ffd700;
+        font-weight: bold; font-size: 25px; margin: 5px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Helper: Real Card Graphics
-def draw_card(n, s, c):
-    st.markdown(f'<div class="card-box"><div class="card-num">{n}</div><div class="card-suit {c}">{s}</div></div>', unsafe_allow_html=True)
-
-def get_random_card():
-    nums = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"]
-    suits = [("♥️", "red"), ("♦️", "red"), ("♠️", "black"), ("♣️", "black")]
-    n, (s, c) = random.choice(nums), random.choice(suits)
-    return n, s, c
-
-# --- LOGIN LOGIC ---
-if not st.session_state.is_admin:
-    st.markdown("<h1 style='text-align:center;'>🎰 VIP MASTER EXCHANGE</h1>", unsafe_allow_html=True)
-    st.divider()
-    key = st.text_input("Admin Secret Key", type="password")
-    if st.button("Unlock All Live Systems"):
-        if key == "Akbar786":
-            st.session_state.is_admin = True
-            st.rerun()
-else:
-    # --- MAIN EXCHANGE PANEL ---
-    st.sidebar.title("👑 VIP Panel")
-    if st.sidebar.button("Logout"):
-        st.session_state.is_admin = False
-        st.rerun()
-
-    tabs = st.tabs(["🏏 Cricket Live", "🚀 Aviator", "🔄 Live Casino", "💳 Wallet"])
-
-    # 1. CRICKET (Leagues + Live Market Rates + 6-20 Fancy)
-    with tabs[0]:
-        st.header("🏏 Live Market Engine")
-        leagues = st.tabs(["🇵🇰 PSL 2026", "🇮🇳 IPL", "🌍 World Cup"])
-        
-        with leagues[0]:
-            matches = [("Peshawar Zalmi", "Lahore Qalandars", 1.85), ("Karachi Kings", "Quetta Gladiators", 2.05)]
-            for t1, t2, base in matches:
-                live_r = round(base + random.uniform(-0.05, 0.05), 2)
-                st.subheader(f"{t1} vs {t2}")
-                c1, c2, c3 = st.columns([3, 1, 1])
-                c1.write("Match Odds")
-                c2.markdown(f"<div class='back-btn'>{live_r}<br>BACK</div>", unsafe_allow_html=True)
-                c3.markdown(f"<div class='lay-btn'>{round(live_r+0.02, 2)}<br>LAY</div>", unsafe_allow_html=True)
-                
-                with st.expander("📊 Market Fancy (6-20 Over Only)"):
-                    for f_name, f_val in [("6 Over", 48), ("10 Over", 82), ("15 Over", 124), ("20 Over", 175)]:
-                        v = f_val + random.randint(-2, 2)
-                        fc1, fc2, fc3 = st.columns([2, 1, 1])
-                        fc1.write(f"**{f_name} Session**")
-                        fc2.button(f"{v}\nNO", key=f"{t1}{f_name}n")
-                        fc3.button(f"{v+2}\nYES", key=f"{t1}{f_name}y")
-                st.divider()
-
-    # 2. CASINO (All Games with Card Numbers + Logic)
-    with tabs[2]:
-        st.header("🔄 Live Casino Hub")
-        game = st.selectbox("Select Game", ["Teen Patti", "Dragon vs Tiger", "Andar Bahar", "Color Prediction"])
-        
-        st.info("Winning Logic Active: Game will reward the side with minimum bets.")
-        
-        if st.button("Start Live Round"):
-            with st.spinner("Dealing Cards..."):
-                time.sleep(2)
-                if game == "Teen Patti":
-                    p1, p2, p3 = st.columns(3)
-                    with p1: draw_card(*get_random_card())
-                    with p2: draw_card(*get_random_card())
-                    with p3: draw_card(*get_random_card())
-                elif game == "Dragon vs Tiger":
-                    d, t = st.columns(2)
-                    with d: st.write("Dragon"); draw_card(*get_random_card())
-                    with t: st.write("Tiger"); draw_card(*get_random_card())
-                elif game == "Andar Bahar":
-                    st.write("Joker Card")
-                    draw_card(*get_random_card())
-                else: # Color
-                    st.write("Color Result Card")
-                    draw_card(*get_random_card())
-                st.success("Result: Minimum Bet Side Wins! ✅")
-
-    # 3. AVIATOR
-    with tabs[1]:
-        st.header("🚀 Aviator")
-        if st.button("Fly Now"):
-            crash = round(random.uniform(1.1, 3.5), 2)
-            m = 1.00
-            p = st.empty()
-            while m < crash:
-                p.markdown(f"<h1 style='text-align:center; font-size:80px;'>{m:.2f}x</h1>", unsafe_allow_html=True)
-                time.sleep(0.1); m += 0.05
-            st.error(f"💥 CRASHED @ {m:.2f}x")
-
-# --- FOOTER ---
+# --- APP HEADER ---
 st.markdown("""
-    <div class="footer">
-        👑 Admin by Akbar khan 👑<br>
-        <span style="font-size: 14px; opacity: 0.8;">Live Exchange Engine Active • © 2026</span>
+    <div class="top-bar">
+        <div style="font-size: 24px; font-weight: bold; color: #39ff14;">Y999</div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="balance-box">Rs 0.00 🔄</div>
+            <div class="deposit-btn">Deposit</div>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
-# Auto-Refresh for Market Rates
-if st.session_state.is_admin:
-    time.sleep(10)
-    st.rerun()
+# --- NAVIGATION LOGIC ---
+if 'page' not in st.session_state: st.session_state.page = 'Home'
+
+# --- CONTENT ---
+if st.session_state.page == 'Home':
+    # 1. LIVE SECTION
+    st.markdown('<div class="cat-header">👤 Live</div>', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-vector/casino-glitter-banner_1017-14361.jpg" class="game-img"><div class="game-title">EVO Live</div></div>', unsafe_allow_html=True)
+    with c2: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-photo/beauty-portrait-woman-with-clean-fresh-skin_1150-13781.jpg" class="game-img"><div class="game-title">SEXY Live</div></div>', unsafe_allow_html=True)
+    with c3: st.markdown('<div class="game-card"><img src="https://img.freepik.com/free-photo/gorgeous-woman-celebrating-with-confetti_23-2148416301.jpg" class="game-img"><div class="game-title">PP Live</div></div>', unsafe_allow_html=True)
+
+    # 2. SPORTS SECTION (All Leagues)
+    st.markdown('<div class="cat-header">⚽ Sports</div>', unsafe_allow_html=True)
+    s1, s2, s3 = st.columns(3)
+    with s1:
+        if st.button("9Wickets"): st.session_state.page = 'Cricket'
+        st.markdown('<div class="game-card"><div class="game-title">9Wickets Sports</div></div>', unsafe_allow_html=True)
+    with s2: st.markdown('<div class="game-card"><div class="game-title">SABA Sports</div></div>', unsafe_allow_html=True)
+    with s3: st.markdown('<div class="game-card"><div class="game-title">WG Sports</div></div>', unsafe_allow_html=True)
+
+    # 3. CARDS & SLOTS
+    st.markdown('<div class="cat-header">🃏 Cards & Slots</div>', unsafe_allow_html=True)
+    cl1, cl2, cl3 = st.columns(3)
+    with cl1: 
+        if st.button("Teen Patti"): st.session_state.page = 'Casino'
+        st.markdown('<div class="game-title">JILI Cards</div>', unsafe_allow_html=True)
+    with cl2: st.markdown('<div class="game-title">Aviator</div>', unsafe_allow_html=True)
+    with cl3: st.markdown('<div class="game-title">Dragon Tiger</div>', unsafe_allow_html=True)
+
+elif st.session_state.page == 'Cricket':
+    st.header("🏏 Live Cricket Exchange")
+    st.info("Market: PSL 2026 - Peshawar vs Lahore")
+    rate = round(random.uniform(1.80, 1.90), 2)
+    col1, col2, col3 = st.columns([2,1,1])
+    col1.write("### Match Odds")
+    col2.button(f"{rate}\nBACK")
+    col3.button(f"{rate+0.02}\nLAY")
+    
+    st.subheader("📊 Fancy (6-20 Over)")
+    for f in ["6 Over", "10 Over", "20 Over"]:
+        r1, r2, r3 = st.columns([2,1,1])
+        r1.write(f)
+        r2.button("NO", key=f+"n")
+        r3.button("YES", key=f+"y")
+    if st.button("Back to Home"): st.session_state.page = 'Home'; st.rerun()
+
+elif st.session_state.page == 'Casino':
+    st.header("🃏 Live Casino Round")
+    if st.button("Deal Real Cards"):
+        c1, c2, c3 = st.columns(3)
+        nums = ["A", "K", "Q", "J", "10"]
+        suits = [("♥️","red"), ("♠️","black")]
+        for c in [c1, c2, c3]:
+            n = random.choice(nums)
+            s, color = random.choice(suits)
+            with c: st.markdown(f'<div class="playing-card" style="color:{color}">{n}<br>{s}</div>', unsafe_allow_html=True)
+    
+    # Logic: Jis side pe kam paise lagein wo win karey
+    st.warning("Admin Logic: Side with MINIMUM bets will win automatically.")
+    if st.button("Back to Home"): st.session_state.page = 'Home'; st.rerun()
+
+# --- BOTTOM NAVIGATION ---
+st.markdown("""
+    <div class="nav-bar">
+        <div class="nav-item active">🏠<br>Home</div>
+        <div class="nav-item">🎁<br>Offers</div>
+        <div class="nav-item">👥<br>Invite</div>
+        <div class="nav-item">🎧<br>Support</div>
+        <div class="nav-item">👤<br>Profile</div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Footer Branding
+st.markdown(f"<div style='text-align:center; padding: 50px; color: #39ff14;'>👑 Admin by Akbar khan 👑<br>Verified Exchange © 2026</div>", unsafe_allow_html=True)
